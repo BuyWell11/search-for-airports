@@ -7,15 +7,18 @@ import java.util.*;
 
 public class CSV_Reader {
     private final HashMap<String, ArrayList<String>> column = new HashMap<>();
-    private final HashMap<String, ArrayList<String>> search_result = new HashMap<>();
+    private final HashMap<ArrayList<String>, String> search_result = new HashMap<>();
     ComparatorForAirports comparatorForAirports = new ComparatorForAirports();
+    private final String filename;
+    private final Integer num_of_column;
+    private boolean delete = false;
 
-    public void load(String filename, Integer num_of_column) throws IOException, OutOfMemoryError {
-        Integer max_num_of_columns = 14;
-        if(num_of_column > max_num_of_columns || num_of_column < 1){
-            System.out.println("out of range");
-            return;
-        }
+    public CSV_Reader(String filename, Integer num_of_column){
+        this.filename = filename;
+        this.num_of_column = num_of_column - 1;
+    }
+
+    public void load() throws IOException, OutOfMemoryError {
         BufferedReader fp = new BufferedReader(new FileReader(filename));
         String string;
         LinkedList<String> linkedList = new LinkedList<>();
@@ -25,7 +28,7 @@ public class CSV_Reader {
         }
         for(String str : linkedList){
             String[] temp = str.split(",");
-            String name = temp[num_of_column-1];
+            String name = temp[0];
             ArrayList<String> other_info = new ArrayList<>();
             Collections.addAll(other_info, temp);
             column.put(name, other_info);
@@ -33,25 +36,36 @@ public class CSV_Reader {
         fp.close();
     }
 
-    public void find(String search){
+    public void find(String search) throws IOException {
+        if(column.isEmpty()){
+            load();
+        }
         long startTime = System.currentTimeMillis();
-        for(String key : column.keySet()){
-            int check = key.toLowerCase().indexOf(search.toLowerCase());
-            int length = search.length();
-            if(key.startsWith("\"")){
-                if (key.toLowerCase().indexOf(search.toLowerCase()) == 1){
-                    search_result.put(key, column.get(key));
+        for(ArrayList<String> arr_of_str : column.values()){
+            String str = arr_of_str.get(num_of_column);
+            if(str.startsWith("\"")){
+                if (str.toLowerCase().indexOf(search.toLowerCase()) == 1){
+                    search_result.put(arr_of_str, str);
                 }
             }
-            else if (key.toLowerCase().indexOf(search.toLowerCase()) == 0){
-                search_result.put(key, column.get(key));
+            else if (str.toLowerCase().indexOf(search.toLowerCase()) == 0){
+                search_result.put(arr_of_str, str);
             }
         }
         long endTime = System.currentTimeMillis();
         long total_time = endTime-startTime;
-        search_result.entrySet().stream().sorted(Map.Entry.comparingByKey(comparatorForAirports)).forEach(System.out::println);
-        System.out.println("строк: " + search_result.size() + " время поиска: " + total_time + " мс");
+        search_result.entrySet().stream().sorted(Map.Entry.comparingByValue(comparatorForAirports)).forEach((entry) -> {
+            System.out.println(entry.getValue() + " " + entry.getKey());});
+        System.out.println("Строк: " + search_result.size() + " Время поиска: " + total_time + " мс");
         search_result.clear();
+        if(delete){
+            column.clear();
+        }
+        switcher();
+    }
+
+    private void switcher(){
+        this.delete = !this.delete;
     }
 
 }
