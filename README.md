@@ -10,4 +10,4 @@ docker build . -t "airport:v1"
 
 docker run -it airport:v1 
 
-In addition, for both you need airports.csv in same directory where did you save jar file
+In addition, for first way you need airports.csv in same directory where did you save jar file
