@@ -8,8 +8,7 @@ public class ComparatorForAirports implements Comparator<String>{
         try {
             double Value1 = Double.parseDouble(o1);
             double Value2 = Double.parseDouble(o2);
-            double result = Value1 - Value2;
-            return (int) result;
+            return Double.compare(Value1, Value2);
         } catch (NumberFormatException e) {
             return o1.compareTo(o2);
         }
